@@ -97,27 +97,32 @@
                         <th>星期一</th><th>星期二</th><th>星期三</th><th>星期四</th><th>星期五</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% if period == '1'%}08:10~9:00
-                    {% elif period == '2'%}09:10~10:00
-                    {% elif period == '3'%}10:10~11:00
-                    {% elif period == '4'%}11:10~12:00
-                    {% elif period == '5'%}13:30~14:20
-                    {% elif period == '6'%}14:25~15:15
-                    {% elif period == '7'%}15:25~16:15
-                    {% elif period == '8'%}16:20~17:10
-                    {% elif period == '9'%}17:15~18:05
-                    {% endif %}
-                    <tr>
-                        <td style="background-color: #f8f9fa; font-weight: bold; vertical-align: middle;">第 {{ period }} 節</td>
-                        <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
-                        <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
-                        <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
-                        <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
-                        <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+<tbody>
+    {% for period in "123456789"|make_list %}
+    <tr>
+        <td style="background-color: #f8f9fa; font-weight: bold; vertical-align: middle;">
+            第 {{ period }} 節<br>
+            <small style="font-size: 12px; color: #666; font-weight: normal;">
+                {% if period == '1' %}08:10 - 09:00
+                {% elif period == '2' %}09:10 - 10:00
+                {% elif period == '3' %}10:10 - 11:00
+                {% elif period == '4' %}11:10 - 12:00
+                {% elif period == '5' %}13:10 - 14:00
+                {% elif period == '6' %}14:10 - 15:00
+                {% elif period == '7' %}15:10 - 16:00
+                {% elif period == '8' %}16:10 - 17:00
+                {% elif period == '9' %}17:10 - 18:00
+                {% endif %}
+            </small>
+        </td>
+        <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
+        <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
+        <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
+        <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
+        <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
+    </tr>
+    {% endfor %}
+</tbody>
             </table>
         </div>
     </div>
