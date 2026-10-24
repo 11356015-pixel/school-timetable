@@ -98,7 +98,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for period in "123456789"|make_list %}
+                    {% if period == '1'%}08:10~9:00
+                    {% elif period == '2'%}09:10~10:00
+                    {% elif period == '3'%}10:10~11:00
+                    {% elif period == '4'%}11:10~12:00
+                    {% elif period == '5'%}13:30~14:20
+                    {% elif period == '6'%}14:25~15:15
+                    {% elif period == '7'%}15:25~16:15
+                    {% elif period == '8'%}16:20~17:10
+                    {% elif period == '9'%}17:15~18:05
                     <tr>
                         <td style="background-color: #f8f9fa; font-weight: bold; vertical-align: middle;">第 {{ period }} 節</td>
                         <td><div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)"></div></td>
