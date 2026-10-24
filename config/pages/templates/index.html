@@ -28,7 +28,7 @@
         th, td { border: 1px solid #e0e0e0; padding: 5px; height: 80px; vertical-align: top; transition: all 0.2s; }
         th { background-color: #2c3e50; color: white; height: 40px; vertical-align: middle; }
         
-        /* 放置區的設定，讓它填滿整個 td */
+        
         .drop-zone {
             width: 100%;
             height: 100%;
@@ -42,7 +42,7 @@
         }
         .drop-zone.drag-over { background-color: #ebf5fb; border-color: #3498db; }
 
-        /* 課程卡片 */
+        
         .course-card {
             background: white;
             border: 1px solid #dcdde1;
@@ -52,7 +52,7 @@
             cursor: grab;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             box-sizing: border-box;
-            flex-grow: 1; /* 在合併的格子中自動延展高度 */
+            flex-grow: 1; 
         }
         .course-card strong{
             font-size: 20px;
@@ -69,11 +69,11 @@
 <body>
 
     <div class="layout">
-        <!-- 左側待排區 -->
+        
         <div class="sidebar drop-zone" id="course-pool" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)">
             <h2>待排課程</h2>
             {% for course in courses %}
-                <!-- 關鍵新增：使用 data-credits 將學分數偷偷藏在 HTML 標籤裡給 JS 讀取 -->
+                
                 <div class="course-card {% if course.is_required %}required{% else %}elective{% endif %}" 
                      draggable="true" 
                      ondragstart="drag(event)" 
@@ -87,7 +87,7 @@
             {% endfor %}
         </div>
 
-        <!-- 右側課表 -->
+        
         <div class="main-content">
             <h1>我的課表</h1>
             <table>
@@ -152,80 +152,78 @@
             let draggedId = ev.dataTransfer.getData("text");
             let draggedElement = document.getElementById(draggedId);
             
-            // 讀取這堂課的學分數，如果有異常則預設為 1
             let credits = parseInt(draggedElement.getAttribute('data-credits')) || 1;
 
-            // 情況 A：把課程拖回左邊的「待排區」
             if (dropZone.id === 'course-pool') {
-                restoreCells(draggedElement); // 呼叫復原函數，把課表格子恢復原狀
-                draggedElement.style.margin = "0 0 10px 0"; // 恢復原本的卡片間距
+                restoreCells(draggedElement); 
+                draggedElement.style.margin = "0 0 10px 0"; 
                 dropZone.appendChild(draggedElement);
                 return;
             }
 
-            // 情況 B：把課程拖進右邊的課表
+            
             let targetTd = dropZone.closest('td');
             let tr = targetTd.closest('tr');
             let tbody = tr.closest('tbody');
             let colIndex = targetTd.cellIndex;
-            let rowIndex = Array.from(tbody.children).indexOf(tr); // 計算這是第幾個 row
+            let rowIndex = Array.from(tbody.children).indexOf(tr); 
 
-            // [防呆檢查 1] 目標格子是否已經有其他課？
+           
             if (dropZone.children.length > 0 && dropZone.children[0].id !== draggedId) {
                 alert("這個時間已經有課了！");
                 return;
             }
 
-            // [防呆檢查 2] 往下的節次空間夠不夠放這堂課？
+            
             if (rowIndex + credits > tbody.children.length) {
                 alert("底下的節次空間不足，無法排入這堂 " + credits + " 學分的課！");
                 return;
             }
 
-            // [防呆檢查 3] 往下的節次是不是空的？(不能覆蓋別的課)
+            
             for (let i = 1; i < credits; i++) {
                 let nextTr = tbody.children[rowIndex + i];
                 let nextTd = nextTr.children[colIndex];
-                // 檢查是否已被隱藏(代表被其他合併課佔用)，或裡面已經有卡片
+                
                 if (nextTd.style.display === 'none' || nextTd.querySelector('.drop-zone').children.length > 0) {
                     alert("底下的節次已經有其他課了，這堂課塞不下！");
                     return;
                 }
             }
 
-            // 通過所有檢查！開始放置：
             
-            // 1. 如果這堂課原本在別的時段，先把它原本佔用的格子復原
+            
+            
             restoreCells(draggedElement);
 
-            // 2. 利用 HTML 的 rowspan 屬性合併儲存格
+           
             targetTd.rowSpan = credits;
             
-            // 3. 隱藏下方的儲存格，並在裡面做個小記號(被誰隱藏的)，方便之後復原
+            
             for (let i = 1; i < credits; i++) {
                 let nextTr = tbody.children[rowIndex + i];
                 let nextTd = nextTr.children[colIndex];
-                nextTd.style.display = 'none'; // 將格子隱藏
-                nextTd.dataset.hiddenBy = draggedId; // 記錄是被哪堂課蓋掉的
+                nextTd.style.display = 'none'; 
+                nextTd.dataset.hiddenBy = draggedId; 
             }
 
-            // 4. 把卡片放進去，並清除邊距讓卡片完美貼合格子
+            
             draggedElement.style.margin = "0"; 
             dropZone.appendChild(draggedElement);
         }
 
-        // 負責恢復表格原本狀態的專用函數
+        
         function restoreCells(element) {
             let draggedId = element.id;
             
-            // 尋找所有被這堂課隱藏的格子，把它們顯示回來
+           
             let hiddenTds = document.querySelectorAll(`td[data-hidden-by="${draggedId}"]`);
             hiddenTds.forEach(td => {
                 td.style.display = ''; 
-                delete td.dataset.hiddenBy; // 清除記號
+                delete td.dataset.hiddenBy; 
             });
             
-            // 把合併的大格子恢復成原本的 1 格
+            
             let parentTd = element.closest('td');
             if (parentTd && parentTd.tagName === 'TD') {
                 parentTd.rowSpan = 1;
