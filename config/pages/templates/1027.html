@@ -1,0 +1,1254 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的課程規劃表</title>
+
+    <style>
+        :root {
+            --primary: #5267df;
+            --primary-light: #eef0ff;
+            --bg: #f5f7fb;
+            --surface: #ffffff;
+            --text: #202b3c;
+            --muted: #718096;
+            --border: #e5e9f2;
+            --required: #e76f75;
+            --elective: #38a985;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: "Microsoft JhengHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        button, input, select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        .page-header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+            padding: 10px 16px;
+            border-radius: 9px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .stat-number {
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .stat-unit {
+            margin-left: 5px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(250px, 310px) minmax(0, 1fr);
+            align-items: start;
+            gap: 20px;
+        }
+
+        .panel {
+            min-width: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 3px 12px rgba(30, 45, 80, 0.03);
+        }
+
+        .panel-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .panel-heading h2 {
+            margin: 0;
+            font-size: 19px;
+        }
+
+        .count {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .search-box {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            outline: none;
+        }
+
+        .search-box:focus,
+        .filter-select:focus {
+            border-color: var(--primary);
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .filter-select {
+            min-width: 0;
+            width: 100%;
+            padding: 9px 7px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            font-size: 13px;
+        }
+
+        .course-pool {
+            min-height: 300px;
+            padding: 10px;
+            border: 2px dashed transparent;
+            border-radius: 10px;
+            background: #f8f9fd;
+            transition: background .2s, border-color .2s;
+        }
+
+        .drop-zone.drag-over {
+            background: var(--primary-light) !important;
+            border-color: var(--primary) !important;
+        }
+
+        .course-card {
+            display: block;
+            width: 100%;
+            margin: 0 0 10px;
+            padding: 13px;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--required);
+            border-radius: 9px;
+            background: white;
+            text-align: left;
+            box-shadow: 0 2px 5px rgba(30, 45, 80, .04);
+            cursor: grab;
+            overflow-wrap: anywhere;
+        }
+
+        .course-card.elective {
+            border-left-color: var(--elective);
+        }
+
+        .course-card:active {
+            cursor: grabbing;
+        }
+
+        .course-card[hidden] {
+            display: none !important;
+        }
+
+        .course-name {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .course-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 7px;
+            border-radius: 5px;
+            font-size: 11px;
+            background: #f0f2f7;
+            color: #526078;
+        }
+
+        .tag-required {
+            background: #fff0f0;
+            color: #c94e57;
+        }
+
+        .tag-elective {
+            background: #eaf8f2;
+            color: #218b69;
+        }
+
+        .pool-empty {
+            padding: 24px 8px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .schedule-panel {
+            overflow: hidden;
+        }
+
+        .schedule-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .legend span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend i {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 3px;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 660px;
+            border-collapse: separate;
+            border-spacing: 4px;
+            table-layout: fixed;
+        }
+
+        th {
+            padding: 13px 5px;
+            background: #f0f2fa;
+            border-radius: 7px;
+            color: #46536b;
+            font-size: 13px;
+        }
+
+        th:first-child {
+            width: 76px;
+        }
+
+        td {
+            height: 83px;
+            padding: 0;
+            vertical-align: top;
+            background: #fafbfe;
+            border: 1px solid #edf0f6;
+            border-radius: 7px;
+        }
+
+        td.period-cell {
+            height: auto;
+            padding: 8px 4px;
+            vertical-align: middle;
+            text-align: center;
+            background: #f4f6fb;
+            color: #65728a;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .cell-zone {
+            width: 100%;
+            height: 100%;
+            min-height: 82px;
+            padding: 5px;
+            border: 2px dashed transparent;
+            border-radius: 6px;
+            transition: background .2s, border-color .2s;
+        }
+
+        .cell-zone .course-card {
+            height: 100%;
+            min-height: 70px;
+            margin: 0;
+            padding: 9px 7px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .cell-zone .course-name {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .cell-zone .course-info {
+            font-size: 11px;
+        }
+
+        td[hidden] {
+            display: none !important;
+        }
+
+        .save-status {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .notice {
+            min-height: 20px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .notice.error {
+            color: #d34d56;
+        }
+
+        .notice.success {
+            color: #218b69;
+        }
+
+        .footer-note {
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 1000px) {
+            body {
+                padding: 16px;
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .course-pool {
+                min-height: 120px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 560px) {
+            .page-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .page-header h1 {
+                font-size: 23px;
+            }
+
+            .stats {
+                gap: 9px;
+            }
+
+            .stat-card {
+                padding: 14px;
+            }
+
+            .stat-number {
+                font-size: 25px;
+            }
+
+            .panel {
+                padding: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="page-header">
+    <div>
+        <h1>我的課程規劃表</h1>
+        <p>安排每週課程，掌握自己的學分進度。</p>
+    </div>
+
+    <div class="header-actions">
+        <button type="button" class="btn" id="reset-btn">
+            清空課表
+        </button>
+        <button type="button" class="btn btn-primary" id="save-btn">
+            儲存課表
+        </button>
+    </div>
+</header>
+
+<!-- 學分統計 -->
+<section class="stats">
+    <div class="stat-card">
+        <div class="stat-label">已排學分</div>
+        <div>
+            <span class="stat-number" id="total-credits">0</span>
+            <span class="stat-unit">學分</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">必修學分</div>
+        <div>
+            <span class="stat-number" id="required-credits">0</span>
+            <span class="stat-unit">學分</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">選修學分</div>
+        <div>
+            <span class="stat-number" id="elective-credits">0</span>
+            <span class="stat-unit">學分</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">已安排課程</div>
+        <div>
+            <span class="stat-number" id="scheduled-count">0</span>
+            <span class="stat-unit">門</span>
+        </div>
+    </div>
+</section>
+
+<main class="layout">
+
+    <!-- 左側：待排課程 -->
+    <aside class="panel">
+        <div class="panel-heading">
+            <h2>待排課程</h2>
+            <span class="count" id="pool-count">0 門</span>
+        </div>
+
+        <input
+            type="search"
+            id="course-search"
+            class="search-box"
+            placeholder="搜尋課名或授課老師..."
+            aria-label="搜尋課程"
+        >
+
+        <div class="filters">
+            <select id="type-filter" class="filter-select"
+                    aria-label="課程類型篩選">
+                <option value="all">全部類型</option>
+                <option value="required">必修</option>
+                <option value="elective">選修</option>
+            </select>
+
+            <select id="status-filter" class="filter-select"
+                    aria-label="課程狀態篩選">
+                <option value="all">全部狀態</option>
+                <option value="pending">待排課程</option>
+                <option value="scheduled">已排課程</option>
+            </select>
+        </div>
+
+        <div
+            class="course-pool drop-zone"
+            id="course-pool"
+            ondragover="allowDrop(event)"
+            ondragleave="leaveDrop(event)"
+            ondrop="drop(event)"
+        >
+            {% for course in courses %}
+            <div
+                class="course-card {% if course.is_required %}required{% else %}elective{% endif %}"
+                id="course-{{ course.id }}"
+                draggable="true"
+                data-course-id="{{ course.id }}"
+                data-credits="{{ course.credits|default:0 }}"
+                data-periods="{{ course.periods|default:course.credits|default:1 }}"
+                data-required="{% if course.is_required %}true{% else %}false{% endif %}"
+                data-name="{{ course.name }}"
+                data-teacher="{{ course.teacher|default:'未設定' }}"
+                data-time="{{ course.time|default:'未設定' }}"
+                ondragstart="drag(event)"
+                ondragend="dragEnd(event)"
+            >
+                <span class="course-name">{{ course.name }}</span>
+
+                <span class="tag {% if course.is_required %}tag-required{% else %}tag-elective{% endif %}">
+                    {% if course.is_required %}必修{% else %}選修{% endif %}
+                </span>
+
+                <div class="course-info">
+                    <span>{{ course.credits }} 學分</span>
+                    <span>·</span>
+                    <span>老師：{{ course.teacher|default:"未設定" }}</span>
+                </div>
+
+                <div class="course-info">
+                    <span>上課時間：{{ course.time|default:"未設定" }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <p class="pool-empty">目前沒有課程資料</p>
+            {% endfor %}
+
+            <p class="pool-empty" id="filter-empty" hidden>
+                找不到符合條件的課程
+            </p>
+        </div>
+
+        <p class="footer-note">
+            將課程拖曳到右側課表即可排課。<br>
+            將課程拖回此區即可取消排課。
+        </p>
+    </aside>
+
+    <!-- 右側：課表 -->
+    <section class="panel schedule-panel">
+        <div class="schedule-toolbar">
+            <div class="panel-heading" style="margin:0">
+                <h2>每週課表</h2>
+            </div>
+
+            <div class="legend">
+                <span><i style="background:var(--required)"></i>必修</span>
+                <span><i style="background:var(--elective)"></i>選修</span>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table id="schedule-table">
+                <thead>
+                    <tr>
+                        <th>節次</th>
+                        <th>星期一</th>
+                        <th>星期二</th>
+                        <th>星期三</th>
+                        <th>星期四</th>
+                        <th>星期五</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for period in "123456789"|make_list %}
+                    <tr data-period="{{ forloop.counter }}">
+                        <td class="period-cell">
+                            第 {{ forloop.counter }} 節
+                        </td>
+
+                        {% for day in "12345"|make_list %}
+                        <td data-day="{{ forloop.counter }}">
+                            <div
+                                class="cell-zone drop-zone"
+                                data-day="{{ forloop.counter }}"
+                                data-period="{{ forloop.parentloop.counter }}"
+                                ondragover="allowDrop(event)"
+                                ondragleave="leaveDrop(event)"
+                                ondrop="drop(event)"
+                            ></div>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="notice" class="notice" role="status" aria-live="polite">
+            將左側課程拖入課表開始排課。
+        </div>
+
+        <div class="footer-note">
+            提醒：上課節數會優先使用課程資料中的 periods 欄位；
+            若沒有設定，則暫時以學分數作為預設值。
+            請依實際課程時間調整。
+        </div>
+    </section>
+
+</main>
+
+<script>
+    "use strict";
+
+    // =========================
+    // 1. 基本設定
+    // =========================
+
+    const DAYS = 5;
+    const MAX_PERIODS = 9;
+
+    // 不同網站或不同版本可使用不同儲存名稱。
+    const STORAGE_KEY = "django_course_planner_v2";
+
+    const pool = document.getElementById("course-pool");
+    const table = document.getElementById("schedule-table");
+    const tbody = table.querySelector("tbody");
+    const notice = document.getElementById("notice");
+
+    // schedule 的資料格式：
+    // {
+    //   "課程ID": { day: 1, period: 2 }
+    // }
+    //
+    // day：1 到 5，代表星期一到星期五
+    // period：1 到 9，代表開始的節次
+
+    let schedule = {};
+    let draggedId = null;
+
+    const cards = Array.from(
+        document.querySelectorAll(".course-card[data-course-id]")
+    );
+
+    const cardMap = new Map(
+        cards.map(card => [card.dataset.courseId, card])
+    );
+
+    // =========================
+    // 2. 取得課程資料
+    // =========================
+
+    function getCourse(id) {
+        return cardMap.get(String(id)) || null;
+    }
+
+    function getCredits(card) {
+        const value = Number(card.dataset.credits);
+        return Number.isFinite(value) && value >= 0 ? value : 0;
+    }
+
+    function getPeriods(card) {
+        const value = Number(card.dataset.periods);
+
+        if (!Number.isInteger(value) || value < 1) {
+            return 1;
+        }
+
+        return Math.min(value, MAX_PERIODS);
+    }
+
+    function getRequired(card) {
+        return card.dataset.required === "true";
+    }
+
+    // =========================
+    // 3. 提示訊息
+    // =========================
+
+    function showNotice(message, type = "") {
+        notice.textContent = message;
+        notice.className = "notice";
+
+        if (type) {
+            notice.classList.add(type);
+        }
+    }
+
+    // =========================
+    // 4. 拖曳功能
+    // =========================
+
+    function allowDrop(event) {
+        event.preventDefault();
+
+        const zone = event.target.closest(".drop-zone");
+
+        if (zone) {
+            zone.classList.add("drag-over");
+        }
+    }
+
+    function leaveDrop(event) {
+        const zone = event.target.closest(".drop-zone");
+
+        if (zone && !zone.contains(event.relatedTarget)) {
+            zone.classList.remove("drag-over");
+        }
+    }
+
+    function drag(event) {
+        const card = event.target.closest(".course-card");
+
+        if (!card) {
+            return;
+        }
+
+        draggedId = card.dataset.courseId;
+
+        event.dataTransfer.setData("text/plain", draggedId);
+        event.dataTransfer.effectAllowed = "move";
+
+        card.style.opacity = "0.55";
+    }
+
+    function dragEnd(event) {
+        const card = event.target.closest(".course-card");
+
+        if (card) {
+            card.style.opacity = "";
+        }
+
+        document.querySelectorAll(".drag-over").forEach(zone => {
+            zone.classList.remove("drag-over");
+        });
+
+        draggedId = null;
+    }
+
+    function drop(event) {
+        event.preventDefault();
+
+        document.querySelectorAll(".drag-over").forEach(zone => {
+            zone.classList.remove("drag-over");
+        });
+
+        const zone = event.target.closest(".drop-zone");
+
+        if (!zone) {
+            return;
+        }
+
+        const id = event.dataTransfer.getData("text/plain");
+
+        if (!id || !getCourse(id)) {
+            return;
+        }
+
+        // 放回待排區：取消該課程的排課。
+        if (zone.id === "course-pool") {
+            delete schedule[id];
+
+            renderSchedule();
+            saveSchedule();
+            updateStats();
+            applyFilters();
+
+            showNotice("已將課程移回待排區。", "success");
+            return;
+        }
+
+        const day = Number(zone.dataset.day);
+        const period = Number(zone.dataset.period);
+
+        if (
+            !Number.isInteger(day) ||
+            day < 1 ||
+            day > DAYS ||
+            !Number.isInteger(period) ||
+            period < 1 ||
+            period > MAX_PERIODS
+        ) {
+            return;
+        }
+
+        // 先複製排課資料，只有通過檢查才正式更新。
+        const candidate = { ...schedule };
+
+        // 排除這堂課原本的位置，避免移動自己時誤判衝堂。
+        delete candidate[id];
+
+        candidate[id] = { day, period };
+
+        const conflict = findConflict(candidate);
+
+        if (conflict) {
+            showNotice(conflict, "error");
+            return;
+        }
+
+        schedule = candidate;
+
+        renderSchedule();
+        saveSchedule();
+        updateStats();
+        applyFilters();
+
+        showNotice("排課成功，已自動儲存。", "success");
+    }
+
+    // =========================
+    // 5. 衝堂與節次檢查
+    // =========================
+
+    function findConflict(candidate) {
+        const occupied = new Map();
+
+        for (const [id, position] of Object.entries(candidate)) {
+            const card = getCourse(id);
+
+            if (!card) {
+                continue;
+            }
+
+            const periods = getPeriods(card);
+            const endPeriod = position.period + periods - 1;
+
+            if (
+                position.day < 1 ||
+                position.day > DAYS ||
+                position.period < 1 ||
+                endPeriod > MAX_PERIODS
+            ) {
+                return (
+                    card.dataset.name +
+                    " 超出課表範圍，請調整開始節次。"
+                );
+            }
+
+            for (
+                let period = position.period;
+                period <= endPeriod;
+                period++
+            ) {
+                const key = position.day + "-" + period;
+
+                if (occupied.has(key)) {
+                    const otherId = occupied.get(key);
+                    const other = getCourse(otherId);
+
+                    return (
+                        "排課衝突：" +
+                        (other ? other.dataset.name : "其他課程") +
+                        " 與 " +
+                        card.dataset.name +
+                        " 在同一時間重疊。"
+                    );
+                }
+
+                occupied.set(key, id);
+            }
+        }
+
+        return null;
+    }
+
+    // =========================
+    // 6. 重建課表與 rowspan
+    // =========================
+
+    function renderSchedule() {
+        // 先將全部課程移回左側，避免舊的 rowspan 或 DOM 位置殘留。
+        cards.forEach(card => {
+            pool.appendChild(card);
+            card.style.margin = "";
+        });
+
+        // 還原所有儲存格，清除舊的合併狀態。
+        const rows = Array.from(tbody.rows);
+
+        rows.forEach(row => {
+            Array.from(row.cells).forEach((td, index) => {
+                if (index === 0) {
+                    return;
+                }
+
+                td.hidden = false;
+                td.rowSpan = 1;
+                delete td.dataset.hiddenBy;
+
+                const zone = td.querySelector(".cell-zone");
+
+                if (zone) {
+                    zone.classList.remove("drag-over");
+                }
+            });
+        });
+
+        // 重新檢查資料，避免載入錯誤或舊版本資料時蓋住課程。
+        const conflict = findConflict(schedule);
+
+        if (conflict) {
+            schedule = {};
+            showNotice("已排課資料有衝突，已清空排課位置，請重新安排。", "error");
+        }
+
+        const entries = Object.entries(schedule).sort((a, b) => {
+            if (a[1].day !== b[1].day) {
+                return a[1].day - b[1].day;
+            }
+
+            return a[1].period - b[1].period;
+        });
+
+        entries.forEach(([id, position]) => {
+            const card = getCourse(id);
+
+            if (!card) {
+                return;
+            }
+
+            const startRow = rows[position.period - 1];
+
+            if (!startRow) {
+                return;
+            }
+
+            const targetTd = startRow.cells[position.day];
+
+            if (!targetTd) {
+                return;
+            }
+
+            const zone = targetTd.querySelector(".cell-zone");
+
+            if (!zone) {
+                return;
+            }
+
+            const periods = getPeriods(card);
+
+            // 合併儲存格只在重建時設定，避免重複累加 rowspan。
+            targetTd.rowSpan = periods;
+            zone.appendChild(card);
+
+            card.style.margin = "0";
+
+            // 隱藏被這堂課占用的下方格子。
+            for (let i = 1; i < periods; i++) {
+                const nextRow = rows[position.period - 1 + i];
+
+                if (!nextRow) {
+                    break;
+                }
+
+                const nextTd = nextRow.cells[position.day];
+
+                if (!nextTd) {
+                    break;
+                }
+
+                nextTd.hidden = true;
+                nextTd.dataset.hiddenBy = id;
+            }
+        });
+
+        // 保留左側標題、提示及搜尋功能，只控制課程卡片。
+        updateStats();
+        applyFilters();
+    }
+
+    // =========================
+    // 7. 學分統計
+    // =========================
+
+    function updateStats() {
+        let total = 0;
+        let required = 0;
+        let elective = 0;
+        let count = 0;
+
+        for (const id of Object.keys(schedule)) {
+            const card = getCourse(id);
+
+            if (!card) {
+                continue;
+            }
+
+            const credits = getCredits(card);
+
+            total += credits;
+            count++;
+
+            if (getRequired(card)) {
+                required += credits;
+            } else {
+                elective += credits;
+            }
+        }
+
+        document.getElementById("total-credits").textContent = total;
+        document.getElementById("required-credits").textContent = required;
+        document.getElementById("elective-credits").textContent = elective;
+        document.getElementById("scheduled-count").textContent = count;
+
+        const pendingCount = cards.filter(
+            card => !schedule[card.dataset.courseId]
+        ).length;
+
+        document.getElementById("pool-count").textContent =
+            pendingCount + " 門待排";
+    }
+
+    // =========================
+    // 8. 搜尋與篩選
+    // =========================
+
+    function applyFilters() {
+        const keyword = document
+            .getElementById("course-search")
+            .value.trim()
+            .toLowerCase();
+
+        const type = document.getElementById("type-filter").value;
+        const status = document.getElementById("status-filter").value;
+
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const id = card.dataset.courseId;
+            const isScheduled = Boolean(schedule[id]);
+
+            const searchableText = (
+                card.dataset.name + " " + card.dataset.teacher
+            ).toLowerCase();
+
+            const matchesKeyword = searchableText.includes(keyword);
+
+            const matchesType =
+                type === "all" ||
+                (type === "required" && getRequired(card)) ||
+                (type === "elective" && !getRequired(card));
+
+            const matchesStatus =
+                status === "all" ||
+                (status === "scheduled" && isScheduled) ||
+                (status === "pending" && !isScheduled);
+
+            const visible =
+                matchesKeyword && matchesType && matchesStatus;
+
+            card.hidden = !visible;
+
+            if (visible) {
+                visibleCount++;
+            }
+        });
+
+        document.getElementById("filter-empty").hidden =
+            visibleCount !== 0;
+    }
+
+    document
+        .getElementById("course-search")
+        .addEventListener("input", applyFilters);
+
+    document
+        .getElementById("type-filter")
+        .addEventListener("change", applyFilters);
+
+    document
+        .getElementById("status-filter")
+        .addEventListener("change", applyFilters);
+
+    // =========================
+    // 9. 自動儲存與讀取
+    // =========================
+
+    function saveSchedule() {
+        try {
+            const data = {
+                version: 2,
+                schedule: schedule
+            };
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            updateSaveStatus("已儲存至此瀏覽器");
+            return true;
+        } catch (error) {
+            updateSaveStatus("儲存失敗，請檢查瀏覽器設定");
+            return false;
+        }
+    }
+
+    function loadSchedule() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+
+            if (!raw) {
+                schedule = {};
+                return;
+            }
+
+            const data = JSON.parse(raw);
+
+            // 兼容 v2 格式及單純的課程位置物件。
+            const saved =
+                data && data.schedule && typeof data.schedule === "object"
+                    ? data.schedule
+                    : data;
+
+            if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
+                schedule = {};
+                return;
+            }
+
+            const restored = {};
+
+            Object.entries(saved).forEach(([id, position]) => {
+                if (!getCourse(id) || !position) {
+                    return;
+                }
+
+                const day = Number(position.day);
+                const period = Number(position.period);
+
+                if (
+                    Number.isInteger(day) &&
+                    day >= 1 &&
+                    day <= DAYS &&
+                    Number.isInteger(period) &&
+                    period >= 1 &&
+                    period <= MAX_PERIODS
+                ) {
+                    restored[id] = { day, period };
+                }
+            });
+
+            // 逐筆驗證，避免舊資料中衝突的課程互相覆蓋。
+            schedule = {};
+
+            Object.entries(restored).forEach(([id, position]) => {
+                const candidate = {
+                    ...schedule,
+                    [id]: position
+                };
+
+                if (!findConflict(candidate)) {
+                    schedule = candidate;
+                }
+            });
+
+        } catch (error) {
+            schedule = {};
+            showNotice("讀取儲存資料失敗，已載入空白課表。", "error");
+        }
+    }
+
+    function updateSaveStatus(message) {
+        let status = document.getElementById("save-status");
+
+        if (!status) {
+            status = document.createElement("span");
+            status.id = "save-status";
+            status.className = "save-status";
+
+            document.querySelector(".schedule-toolbar").appendChild(status);
+        }
+
+        status.textContent = message;
+    }
+
+    document.getElementById("save-btn").addEventListener("click", () => {
+        if (saveSchedule()) {
+            showNotice("課表已儲存。", "success");
+        } else {
+            showNotice("儲存失敗，請檢查瀏覽器是否允許儲存資料。", "error");
+        }
+    });
+
+    // =========================
+    // 10. 清空課表
+    // =========================
+
+    document.getElementById("reset-btn").addEventListener("click", () => {
+        if (!Object.keys(schedule).length) {
+            showNotice("目前沒有已排課程。");
+            return;
+        }
+
+        if (!confirm("確定要清空全部已排課程嗎？")) {
+            return;
+        }
+
+        schedule = {};
+
+        renderSchedule();
+        saveSchedule();
+        showNotice("課表已清空，所有課程已移回待排區。", "success");
+    });
+
+    // =========================
+    // 11. 啟動
+    // =========================
+
+    loadSchedule();
+    renderSchedule();
+    updateStats();
+    applyFilters();
+
+    updateSaveStatus("自動儲存已啟用");
+</script>
+
+</body>
+</html>
